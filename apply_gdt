@@ -1,19 +1,23 @@
 import numpy as np
 from IPython import embed
 
-def geodesic_distance_2D(im,seeds,its=2):
+def geodesic_distance_2D(im,seeds,its=2,wG=1.0,scalingF=1):
     # geodesic2d raster scan
     # following paper from Toivanen et al
+    # wG is between 0.0 and 1.0 and defines ratio in weight between gradient and distance    
+    # scalingF is to compensate for when the gradient is either very high or low in images
+       # fine-tune it so that wG can be nicely varied between 0.0 and 1.0 and the difference is seen in the image
     
     #im is a 2D image with dimensions width,height
-    #seeds is a 2D array with dimensions #seeds by 2 (xy coords)
+    #seeds is a 2D array with dimensions: number of seeds x 2 (xy coords)
+    print('Computing Weighted Geodesic Distance Map with gradient weight ' + str(wG))
 
     img = np.array(im,dtype=np.float32)
     width = img.shape[0]
     height = img.shape[1]
     distance = 1.0e10 * np.ones(img.shape,dtype=np.float32)
     seeds = np.array(seeds,dtype=np.int32)
-
+    
     for s in range(seeds.shape[0]):
         distance[seeds[s,0],seeds[s,1]] = 0.0
     
@@ -24,12 +28,16 @@ def geodesic_distance_2D(im,seeds,its=2):
         kh_f = np.array([-1,-1,-1,0]) 
         kw_f = np.array([-1,0,1,-1])  
         
-        #distance point p to point q (point in kernel)
-        alpha_f = np.array([1.414, 1.0, 1.414, 1.0])
-
+        #squared distance point p to point q (point in kernel)
+        squared_dist_f = np.array([2.0, 1.0, 2.0, 1.0])
+    
+        #alpha in the formula dq = alpha*sqrt((G(p)-G(q))^2 + beta)
+        alpha = 1.0        
+        
         #forward pass    
         for h in range(height):
             for w in range(width):
+                
                 #get distance and intensity value at point p
                 p_dist = distance[w,h]
                 p_val = img[w,h]
@@ -47,26 +55,28 @@ def geodesic_distance_2D(im,seeds,its=2):
                     q_dist = distance[nw,nh]
                     q_val = img[nw,nh]
                     
-                    #from paper, dq = alpha*|G(p)-G(q)|
-                    delta = alpha_f[i] * abs(p_val-q_val)
+                    #from paper, dq = alpha*sqrt((G(p)-G(q))^2 + beta)
+                    deltaW = alpha * np.sqrt(wG * np.square(p_val - q_val) * scalingF + (1.0-wG) * squared_dist_f[i])
+                    
+                    #from paper F*(p) = min(F(p),calc_distances) with calc_dist = 1+dq+F*(q) for all places in kernel
+                    calc_dist = deltaW + q_dist
                     
                     #select minimal distance of calculated distance and current distance
                     #for point p
-                    calc_dist = q_dist+delta   
                     if calc_dist < p_dist:
                         p_dist = calc_dist
                         
                 #after going through kernel the selected distance is added to the distance map                        
                 distance[w,h] = p_dist
+                checkdots(distance,seeds)
 
         #backward scan
         #kernel backward scan (paper Toivanen, table 4)
         kh_b = np.array([0, 1, 1, 1]) 
         kw_b = np.array([1, -1, 0, 1])
 
-        #distance point p to point q (point in kernel)
-        alpha_b = np.array([1.0, 1.414, 1.0, 1.414])
-        
+        #squared distance point p to point q (point in kernel)
+        squared_dist_b = np.array([1.0, 2.0, 1.0, 2.0])
         #loop through image in reverse order
         looph = np.arange(height)[::-1]
         loopw = np.arange(width)[::-1]
@@ -90,16 +100,21 @@ def geodesic_distance_2D(im,seeds,its=2):
                     q_dist = distance[nw,nh]
                     q_val = img[nw,nh]
                     
-                    #from paper, dq = alpha*|G(p)-G(q)|
-                    delta = alpha_b[i] * abs(p_val-q_val)
-                    
+                    deltaW = alpha * np.sqrt(wG * np.square(p_val - q_val) * scalingF + (1.0-wG) * squared_dist_b[i])
+
+                    #from paper F*(p) = min(F(p),calc_distances) with calc_dist = 1+dq+F*(q) for all places in kernel
+                    calc_dist = deltaW + q_dist
+
                     #select minimal distance of calculated distance and current distance
                     #for point p 
-                    calc_dist = q_dist+delta
+                    calc_dist = deltaW + q_dist 
+                    
                     if calc_dist < p_dist:
                         p_dist = calc_dist
                         
                 #after going through kernel the selected distance is added to the distance map                        
                 distance[w,h] = p_dist
+                checkdots(distance,seeds)
+                
     
     return distance
