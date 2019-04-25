@@ -208,8 +208,7 @@ def compute_dm_rasterscan(im, seeds, its=8, dist_type='', scaling_factor=1):
     seeds = np.array(seeds, dtype=np.int32)
 
     assert seeds.shape[1] == len(img.shape), \
-        "ERROR, intensity image " + str(len(img.shape)) + "D but seed points " + seeds.shape[
-            1] + "D, should be the same!"
+        "ERROR, intensity image " + str(len(img.shape)) + "D but seed points " + str(seeds.shape[1]) + "D, should be the same!"
 
     if len(img.shape) > 2:
         # 3D distance map
@@ -257,3 +256,10 @@ def compute_dm_rasterscan(im, seeds, its=8, dist_type='', scaling_factor=1):
         checkdots_anydim(distance, seeds)
 
     return distance
+
+
+if __name__ == '__main__':
+    im = 255 * np.random.random([200,300])
+    seeds = np.random.random(im.shape)
+    seeds = np.transpose(np.where(seeds > 0.99))
+    dist_map = compute_dm_rasterscan(im, seeds, its=2, dist_type='geodesic')
