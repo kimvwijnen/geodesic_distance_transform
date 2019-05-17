@@ -199,7 +199,7 @@ def compute_dm_rasterscan(im, seeds, its=8, dist_type='', scaling_factor=1):
     # following paper from Toivanen et al
     # scaling_factor: change the weighting of euclidean distance vs intensity distance
 
-    # im is a 2D or 3D image with dimensions width,height(,depth)
+    # im is a 2D or 3D image with dimensions width, height(, depth)
     # shape of image defines if the distance map will be 2D or 3D
     # seeds is a 2D array with dimensions #seeds by 2 or 3 (xy(z) coords)
     # Image is not transposed, dimensions are width x height x depth
