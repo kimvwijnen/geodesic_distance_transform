@@ -28,8 +28,8 @@ dm = compute_dm_rasterscan(im, seeds, its=iterations, dist_type=dist_type)
 
 if save_im:
     save_filename = 'example/' + dist_type + '_distance_map.png'
-    imageio.imwrite(save_filename, dm)
-    print('Saved dm as ' + save_filename)
+    plt.imsave(save_filename, dm, cmap='viridis')
+    print('Saved as ' + save_filename)
 else:
     plt.imshow(dm)
     plt.show()
