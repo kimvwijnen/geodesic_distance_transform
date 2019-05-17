@@ -1,9 +1,14 @@
-(Geodesic) Distance Transform
+# (Geodesic) Distance Transform
 
 Python implementation of Geodesic Distance Transform (GDT) using Raster Scan for 2D and 3D images. 
 
 Based on the paper "New geodesic distance transforms for gray-scale images" by Toivanen et al (1996) and taigw's C++ version (github.com/taigw/geodesic_distance).
 
-An image and the coordinates of seed points are required to compute the distance map.
+This code computes a distance map given an input image and one or multiple seed points. The type of distance used in the distance map can be Euclidean distance, intensity distance or geodesic distance which combines both. The weighting between intensity distance and Euclidean distance can be varied when computing the geodesic distance map.
 
-The weighting between intensity distance and Euclidean distance can be varied when computing the geodesic distance map. The code also allows for computing a distance map based on Euclidean distance or intensity distance, instead of geodesic distance. 
+![example_gdm_code](https://user-images.githubusercontent.com/29973428/57920003-4afe7e80-789a-11e9-9477-b61744cc49db.png)
+
+# Run example
+- Change the parameters in 'example_code.py' to the desired settings
+- Run 'python example_code.py'
+- Check the result in the example directory
